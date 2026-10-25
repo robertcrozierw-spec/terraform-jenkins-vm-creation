@@ -43,7 +43,7 @@ resource "azurerm_resource_group" "BobsWorld" {
 ##Section adding VM creation 
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "eastus2"
+  location = "northcentralus"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -76,7 +76,7 @@ resource "azurerm_linux_virtual_machine" "example" {
   name                = "example-machine"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  size                = "Standard_D4_v5"
+  size                = "B2as_v2"
   admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.example.id,
