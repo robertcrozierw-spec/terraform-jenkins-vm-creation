@@ -82,6 +82,11 @@ resource "azurerm_linux_virtual_machine" "example" {
     azurerm_network_interface.example.id,
   ]
 
+admin_ssh_key {
+  username   = "adminuser"
+  public_key = file("/var/lib/jenkins/.ssh/id_ed25519.pub")
+  }
+
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
