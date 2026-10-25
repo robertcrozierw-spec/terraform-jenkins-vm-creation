@@ -60,17 +60,7 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_network_interface" "example" {
-  name                = "example-nic"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
 
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.example.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
 
 resource "azurerm_linux_virtual_machine" "example" {
   name                = "example-machine"
@@ -97,5 +87,16 @@ admin_ssh_key {
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
+  }
+}
+resource "azurerm_network_interface" "example" {
+  name                = "example-nic"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.example.id
+    private_ip_address_allocation = "Dynamic"
   }
 }
