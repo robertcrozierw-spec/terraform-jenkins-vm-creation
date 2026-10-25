@@ -84,7 +84,7 @@ resource "azurerm_linux_virtual_machine" "example" {
 
 admin_ssh_key {
   username   = "adminuser"
-  public_key = file("/root/adminuser.pub")
+  public_key = file("/opt/tf-keys/adminuser.pub")
   }
 
   os_disk {
