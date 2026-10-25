@@ -31,11 +31,11 @@ resource "azurerm_resource_group" "BobsWorld" {
     owner = "JenkinsPipeline"
   }
 }
-resource "azurerm_resource_group" "BobsWorld2" {
-  name     = "BobsWorld2"
-  location = "eastus2"
-
-  tags = {
-    owner = "JenkinsPipeline"
-  }
-}
+#resource "azurerm_resource_group" "BobsWorld2" {
+#  name     = "BobsWorld2"
+#  location = "eastus2"
+#
+#  tags = {
+#    owner = "JenkinsPipeline"
+#  }
+#}
