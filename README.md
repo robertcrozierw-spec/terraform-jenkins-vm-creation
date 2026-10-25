@@ -6,7 +6,7 @@ The main purpose here will be to carry on building out infrastructure via terraf
 Main topics will be:
 -   Clearing up interpolation warning.
 -   Trigger build through Git commit.
--   Build VM in existing resource group.
+-   Build VM.
 -   Add additional .tf files to improve readability and management.
 
 ## Prerequisites
@@ -40,6 +40,19 @@ I can then drop the renaming of all the variables as they now match the format r
 
 Running again I can now see no Interpolation warnings!
 
+## Build VM
+
+Looking at the examples from the Terraform site I decided to movie forward with this basic [linux VM](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine)
+
+I would i have made one small modifcation and that is removing the 
+```
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = file("/opt/tf-keys/adminuser.pub")
+  }
+```
+
+
 ## Automated build triggering
 
 This will allow trigger a Jenkins build each time we push to the Repo. It is configured via a webhook on the Github side.
@@ -55,9 +68,11 @@ We can configure the github webhook here, make sure to include the /github-webho
 Once configured on Github and Firewall issues resolved we can see a successful ping:
 ![alt text](../terraform-jenkins-vm-creation/Images/image.png)
 
-
+Now whenever I push to the repo and I can see a build starting on the Jenkins Pipeline, that was trigger by my github account:
+![alt text](../terraform-jenkins-vm-creation/Images/imagejp.png)
 
 ## Conclusion
 
 I would have preferred to resolve the interpolation warning using the correct syntax however im not sure that was possible, one other solution would be to build a helper function that I could then call in each step that I need the credentials. This would be of some benefit as it would allow greater flexibility in naming the variables. However for now I think the solution works quite well.
+One detail regarding the Github triggering, currently it´s trigger for every push, including changes to the README.md. This is acceptable for this project however I think moving forward it would be better to filter it to just changes made to the Terraform files or Jenkinsfile.
 
