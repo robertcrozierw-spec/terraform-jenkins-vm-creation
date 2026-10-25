@@ -3,10 +3,10 @@ pipeline {
     //Define environment variables for Azure credentials
     environment{
         AZURE_CREDS = credentials('terraform-jenkins-rg-creation')
-        ARM_CLIENT_ID="${AZURE_CREDS_CLIENT_ID}"
-        ARM_CLIENT_SECRET="${AZURE_CREDS_CLIENT_SECRET}"
-        ARM_TENANT_ID="${AZURE_CREDS_TENANT_ID}"
-        ARM_SUBSCRIPTION_ID="${AZURE_CREDS_SUBSCRIPTION_ID}"
+        ARM_CLIENT_ID='${AZURE_CREDS_CLIENT_ID}'
+        ARM_CLIENT_SECRET='{AZURE_CREDS_CLIENT_SECRET}'
+        ARM_TENANT_ID='${AZURE_CREDS_TENANT_ID}'
+        ARM_SUBSCRIPTION_ID='${AZURE_CREDS_SUBSCRIPTION_ID}'
         ARM_ACCESS_KEY = credentials('terraform-jenkins-remote-backend-key')
         }
 
