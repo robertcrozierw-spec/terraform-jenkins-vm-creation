@@ -43,7 +43,7 @@ resource "azurerm_resource_group" "BobsWorld" {
 ##Section adding VM creation 
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "eastus2"
 }
 
 resource "azurerm_virtual_network" "example" {
