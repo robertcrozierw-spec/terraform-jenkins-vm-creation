@@ -84,7 +84,7 @@ resource "azurerm_linux_virtual_machine" "example" {
 
 admin_ssh_key {
   username   = "adminuser"
-  public_key = file("/var/lib/jenkins/.ssh/id_ed25519.pub")
+  public_key = file("/root/adminuser.pub")
   }
 
   os_disk {
