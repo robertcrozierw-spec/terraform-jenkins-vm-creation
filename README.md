@@ -2,7 +2,7 @@
 
 This is a follow up from [terraform-jenkins-remote-backend](https://github.com/robertcrozierw-spec/terraform-jenkins-remote-backend).
 
-The main purpose here will be to carry on building out infrastructure via terraform and Jenkins and clearing up some underlying issues from the previous build.
+The main purpose here will be to carry on building out infrastructure via terraform Jenkins along with clearing up some underlying issues from the previous build.
 Main topics will be:
 -   Clearing up interpolation warning.
 -   Trigger build through Git commit.
@@ -18,7 +18,7 @@ The following is required before getting started:
 
 The warning I received is actually linking to a page on the [Jenkins site](https://www.jenkins.io/doc/book/pipeline/jenkinsfile/#string-interpolation) with more information.
 The specific section on [Interpolation of sensitive environment variables](https://www.jenkins.io/doc/book/pipeline/jenkinsfile/#interpolation-of-sensitive-environment-variables), is advising that the current syntax is expanding the contents of "${AZURE_CREDS_CLIENT_ID}" and the other environment variables.
-The concern here is that it if the string stored in the environment variable contained any special or command characters, Jenkins will then run this as a command. This has has security implications(SQL injection style attack) or operational(random cmds running breaking the pipeline).
+The concern is if the string stored in the environment variable contained any special or command characters, Jenkins will then run this as a command. This has has security implications(SQL injection style attack) or operational(random cmds running breaking the pipeline).
 
 After some troubleshooting and experimenting I found resolving this via a simple syntax change wasn't likely. So instead I took a look at the actual variable naming required for the ARM provider. Initially I was naming my variable below: 
 ```
@@ -40,39 +40,59 @@ I can then drop the renaming of all the variables as they now match the format r
 
 Running again I can now see no Interpolation warnings!
 
+## Automated build triggering
+
+This will allow me to trigger a Jenkins build each time we push to the Repo.
+
+It needs to configured in 2 places, or 3 if you count the Firewall:
+-   Jenkins - Github integration plugin needs to be install, the Pipeline needs to have "GitHub hook trigger for GITScm polling" enabled.
+-   Github - Enable webhook and confirm it can connect.
+-   Cloud provider - Make sure Firewall protecting the Jenkins server is allowing connections from Github webhooks, when first configured I was receiving an error on the Github side that it could not connect.
+
+The Jenkins Github integration can be found [here](https://plugins.jenkins.io/github-pullrequest/). I made sure it was installed on my Jenkins instance.
+
+We can configure the Github webhook here, make sure to include the /github-webhook/ as part of the URL:
+![alt text](../terraform-jenkins-vm-creation/Images/imagegh.png)
+
+Confirm that all the IPs are whitelisted on the Firewall, a list can be found [here](https://api.github.com/meta) under the the "hooks" section.
+
+Once configured on Github and Firewall issues resolved we can see a successful ping:
+![alt text](../terraform-jenkins-vm-creation/Images/image.png)
+
+Now whenever I push to the repo and I can see a build starting on the Jenkins Pipeline and that it was triggered by my github account:
+![alt text](../terraform-jenkins-vm-creation/Images/imagejp.png)
+
 ## Build VM
 
-Looking at the examples from the Terraform site I decided to movie forward with this basic [linux VM](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine)
+Looking at the examples from the Terraform site I decided to movie forward with this basic [linux VM](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine).
 
-I would i have made one small modifcation and that is removing the 
+I updated the main.tf and made one small addition, for the ssh access to the VM it needs a public key. 
+With this in mind I went ahead and generated a keypair manually on the Jenkins server using `ssh-keygen -t rsa -b 4096 -C "adminuser"` and copied the public key to the below location:
 ```
   admin_ssh_key {
     username   = "adminuser"
     public_key = file("/opt/tf-keys/adminuser.pub")
   }
 ```
+Once completed it runs successfully, creating the VM as per the resource definitions in the main.tf.
+
+To remove the resources I can just delete them from the main.tf or in this case I just commented them out. Now simply committing the changes Terraform will destroy the resources. 
+
+## Additional Terraform files
+
+A Terraform deployment or configuration will typically contain multiple files. So far I have only been using one. This is fine for demo and small projects, however as we are now building VMs and the support components it is better to start adding some support files.
+
+The following additional .tf files have been created:
+-   provider.tf - This is were all the provider information will go, it's useful to have in a separate file as it makes collaboration easier. We now have a single file that can determine the Terraform version, provider version and Statefile location. This file can be shared to other developers.
+-   variables.tf and .tfvars - Allows me to define variables within the code. variables.tf is the initial declaration of the variables, and it will provide a default value if I do not provide one. .tfvars is where I can define the value of our own variables, typically this is were actual changes are made to the existing Terraform code.
+Using .tfvars allows us to configure separate environments for each stage, for example we can have dev.tfvars, staging.tfvars and prod.tfvars.
 
 
-## Automated build triggering
 
-This will allow trigger a Jenkins build each time we push to the Repo. It is configured via a webhook on the Github side.
-
-It needs to configured in 2 places, or 3 if you count the Firewall
--   Jenkins - Github integration plugin needs to be install, the Pipeline needs to have "GitHub hook trigger for GITScm polling" enabled.
--   Github - Enable webhook and confirm it can connect.
--   Cloud provider - Make sure Firewall protecting the Jenkins server is allowing connections from Github webhooks, when first configured I was receiving an error on the Github side that it could not connect.
-
-We can configure the github webhook here, make sure to include the /github-webhook/ as part of the URL:
-![alt text](../terraform-jenkins-vm-creation/Images/imagegh.png)
-
-Once configured on Github and Firewall issues resolved we can see a successful ping:
-![alt text](../terraform-jenkins-vm-creation/Images/image.png)
-
-Now whenever I push to the repo and I can see a build starting on the Jenkins Pipeline, that was trigger by my github account:
-![alt text](../terraform-jenkins-vm-creation/Images/imagejp.png)
 
 ## Conclusion
 
-I would have preferred to resolve the interpolation warning using the correct syntax however im not sure that was possible, one other solution would be to build a helper function that I could then call in each step that I need the credentials. This would be of some benefit as it would allow greater flexibility in naming the variables. However for now I think the solution works quite well.
+I would have preferred to resolve the interpolation warning using the correct syntax however im not sure that was possible, one other solution would be to build a helper function that. I can then call this helper function each time i need the credentials. This would be of some benefit as it would allow greater flexibility in naming the variables.
 One detail regarding the Github triggering, currently it´s trigger for every push, including changes to the README.md. This is acceptable for this project however I think moving forward it would be better to filter it to just changes made to the Terraform files or Jenkinsfile.
+
 

@@ -15,6 +15,15 @@ resource "azurerm_resource_group" "BobsWorld2" {
     owner = "JenkinsPipeline"
   }
 }
+//This time we defined the name in the variables.tf
+resource "azurerm_resource_group" "var.resource_group_name" {
+  name     = var.resource_group_name
+  location = "eastus2"
+
+  tags = {
+    owner = "JenkinsPipeline"
+  }
+}
 
 ###Section adding VM creation 
 #resource "azurerm_resource_group" "example" {
