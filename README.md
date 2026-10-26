@@ -82,17 +82,53 @@ To remove the resources I can just delete them from the main.tf or in this case 
 
 A Terraform deployment or configuration will typically contain multiple files. So far I have only been using one. This is fine for demo and small projects, however as we are now building VMs and the support components it is better to start adding some support files.
 
-The following additional .tf files have been created:
--   provider.tf - This is were all the provider information will go, it's useful to have in a separate file as it makes collaboration easier. We now have a single file that can determine the Terraform version, provider version and Statefile location. This file can be shared to other developers.
--   variables.tf and .tfvars - Allows me to define variables within the code. variables.tf is the initial declaration of the variables, and it will provide a default value if I do not provide one. .tfvars is where I can define the value of our own variables, typically this is were actual changes are made to the existing Terraform code.
-Using .tfvars allows us to configure separate environments for each stage, for example we can have dev.tfvars, staging.tfvars and prod.tfvars.
 
+### provider.tf
 
+This is were all the provider information will go, it's useful to have in a separate file as it makes collaboration easier. We now have a single file that can determine the Terraform version, provider version and Statefile location. This file can be shared to other developers.
 
+I created the [provider.tf](../terraform-jenkins-vm-creation/provider.tf) and moved the contents from main.tf.
+
+### variables.tf and .tfvars 
+
+Allows me to define variables within the code. 
+[variables.tf](../terraform-jenkins-vm-creation/variables.tf) is the initial declaration of the variables, and it will provide a default value if I do not provide one.
+The .tfvars file and in my case the where I can define the value of these variables, typically this is were actual changes are made to the existing Terraform code.
+Using .tfvars allows us to configure separate environments for each stage, for example we can have dev.tfvars, staging.tfvars and prod.tfvars. In muy case for now I created one the [dev.auto.tfvars](../terraform-jenkins-vm-creation/dev.auto.tfvars)
+
+To confirm this is working I initially just did it with a resource group:
+```
+//This time we defined the name in the variables.tf
+resource "azurerm_resource_group" "rg" {
+  name     = var.resource_group_name
+  location = "eastus2"
+
+  tags = {
+    owner = "JenkinsPipeline"
+  }
+```
+Before applying this to the VM I changed the naming slightly, the variable definition is now "environment" and inside `dev.auto.tfvars` it is set to "dev".
+I then appended this name to each of the components, after push to my repo I can now see that the components have been created using this new naming convention as defined in the variables files:
+![alt text](../terraform-jenkins-vm-creation/Images/imagecomps.png)
+
+### outputs.tf
+
+In some cases it is necessary for us to output information on the deployed resources.
+A good example might the public IP if I had created one.
+For this [example](../terraform-jenkins-vm-creation/output.tf) I have outputted the resource ID of the resource group containing all of the VM components:
+```
+output "resource_group_azure_id" {
+  description = "The fully qualified Azure Resource ID of the resource group."
+  value       = azurerm_resource_group.vm_rg.id
+}
+```
+Although this is a trivial example it does show how its possible to output certain values, these values can then be referenced by terraform itself in other parts of the deployment. This will be used in later projects.
 
 ## Conclusion
 
-I would have preferred to resolve the interpolation warning using the correct syntax however im not sure that was possible, one other solution would be to build a helper function that. I can then call this helper function each time i need the credentials. This would be of some benefit as it would allow greater flexibility in naming the variables.
+I would have preferred to resolve the interpolation warning using the correct syntax however im not sure that was possible, one other solution would be to build a helper function that. I can then call this helper function each time I need the credentials. This would be of some benefit as it would allow greater flexibility in naming the variables.
+
 One detail regarding the Github triggering, currently it´s trigger for every push, including changes to the README.md. This is acceptable for this project however I think moving forward it would be better to filter it to just changes made to the Terraform files or Jenkinsfile.
+Regarding the additional Terraform files this will be implemented in all future projects, as it is a much cleaner approach and adds much more flexibility to deployments.
 
 
