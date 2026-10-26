@@ -16,7 +16,7 @@ resource "azurerm_resource_group" "BobsWorld2" {
   }
 }
 //This time we defined the name in the variables.tf
-resource "azurerm_resource_group" "var.resource_group_name" {
+resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = "eastus2"
 
