@@ -1,1 +1,1 @@
-resource_group_name = "DevResourceGroup"
+environment = "Dev"
